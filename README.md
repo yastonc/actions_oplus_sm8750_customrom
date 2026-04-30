@@ -1,7 +1,7 @@
 <div id="toc" align="center" style="margin-bottom: 0; padding-bottom: 0;">
   <ul style="list-style: none; margin: 0; padding: 0;">
     <summary>
-      <h1 align="center" style="margin: 0; padding: 0;">⋆. 𐙚˚࿔ palaziks OnePlus Kernel 𝜗𝜚˚⋆</h1>
+      <h1 align="center" style="margin: 0; padding: 0;">⋆. palaziks OnePlus Kernel ⋆</h1>
       <p align="center" style="font-size:12px; margin-top: 5px; margin-bottom: 20px;">
         <i>Performance-focused GKI 6.6 kernel for OnePlus 13 (SM8750) with SukiSU Ultra</i>
       </p>
