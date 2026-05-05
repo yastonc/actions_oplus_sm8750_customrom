@@ -433,9 +433,9 @@ jobs:
           wait
 
           if [ "${{ github.event.inputs.SUSFS }}" == "true" ]; then
-            echo "⏪ Rolling back susfs4oki to working commit (e7dd154)..."
+            echo "⏪ Rolling back susfs4oki to working commit (a2c16be)..."
             cd susfs4oki
-            git checkout e7dd154
+            git checkout a2c16be
             cd ..
           fi
 
