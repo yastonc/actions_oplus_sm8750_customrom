@@ -385,43 +385,51 @@ jobs:
         if: github.event.inputs.SUSFS == 'true'
         working-directory: kernel_workspace/common
         run: |
-          # 1. 在 selinux_hide.c 中定义缺失的符号
           SELINUX_HIDE="drivers/kernelsu/feature/selinux_hide.c"
+    
           if [ -f "$SELINUX_HIDE" ]; then
-            # 添加缺失的符号定义
-            cat >> "$SELINUX_HIDE" << 'EOF'
+            # 1. 修复 __maybe_static 符号为可导出
+            # 移除 __maybe_static 宏，使符号可以被外部引用
+            sed -i 's/__maybe_static bool ksu_selinux_hide_enabled/bool ksu_selinux_hide_enabled/g' "$SELINUX_HIDE"
       
-            /* Missing symbols for SUSFS inline hook mode */
-            #ifdef CONFIG_KSU_SUSFS
-            struct static_key_false fake_status_initialize_key = STATIC_KEY_FALSE_INIT;
-            EXPORT_SYMBOL_GPL(fake_status_initialize_key);
+            # 2. 修复 fake_status 的类型和导出 (从 struct page* 改为 struct selinux_state*)
+            # 注意：这需要同时修改类型定义
+            sed -i 's/__maybe_static struct page \*fake_status/struct selinux_state *fake_status/g' "$SELINUX_HIDE"
       
-            bool ksu_selinux_hide_enabled = false;
-            EXPORT_SYMBOL_GPL(ksu_selinux_hide_enabled);
+            # 3. 修复 initialize_fake_status 返回类型 (void -> int)
+            sed -i 's/__maybe_static void initialize_fake_status(/int initialize_fake_status(/g' "$SELINUX_HIDE"
       
-            struct selinux_state *fake_status;
-            EXPORT_SYMBOL_GPL(fake_status);
+            # 4. 在函数体末尾添加 return 0
+            sed -i '/^int initialize_fake_status(/,/^}/ {
+            s/^}$/    return 0;\n}/g
+            }' "$SELINUX_HIDE"
       
-            int initialize_fake_status(void)
-            {
-            return 0;
-            }
+            # 5. 修复 static_key
+            sed -i 's/__maybe_static DEFINE_STATIC_KEY_FALSE(fake_status_initialize_key);/struct static_key_false fake_status_initialize_key = STATIC_KEY_FALSE_INIT;\nEXPORT_SYMBOL_GPL(fake_status_initialize_key);/g' "$SELINUX_HIDE"
+      
+            # 6. 添加 EXPORT_SYMBOL 宏
+            # 在函数定义后添加 EXPORT_SYMBOL
+            sed -i '/^int initialize_fake_status(/,/^}/ {
+            a\
             EXPORT_SYMBOL_GPL(initialize_fake_status);
-            #endif
-          EOF
-            echo "✅ Added missing symbols to selinux_hide.c"
+            }' "$SELINUX_HIDE"
+      
+            sed -i '/^bool ksu_selinux_hide_enabled =/a\
+            EXPORT_SYMBOL_GPL(ksu_selinux_hide_enabled);' "$SELINUX_HIDE"
+      
+            sed -i '/^struct selinux_state \*fake_status;/a\
+            EXPORT_SYMBOL_GPL(fake_status);' "$SELINUX_HIDE"
+      
+            echo "✅ Fixed symbol visibility in selinux_hide.c"
           fi
 
-           # 2. 原有的 backup_sepolicy 修复
-           SERVICES="security/selinux/ss/services.c"
-           RULES="KernelSU/kernel/selinux/rules.c"
-    
-           if [ -f "$RULES" ]; then
-             sed -i '/^#define ALL NULL/a\\n#ifdef CONFIG_KSU_SUSFS\nstruct selinux_policy *backup_sepolicy;\n#endif' "$RULES" || true
-      
-             sed -i '/rcu_assign_pointer(selinux_state.policy, pol);/a#ifdef CONFIG_KSU_SUSFS\n    backup_sepolicy = pol;\n#endif' "$RULES" || true
-             echo "✅ backup_sepolicy configured"
-           fi
+          # backup_sepolicy 修复
+          RULES="KernelSU/kernel/selinux/rules.c"
+          if [ -f "$RULES" ]; then
+            sed -i '/^#define ALL NULL/a\\n#ifdef CONFIG_KSU_SUSFS\nstruct selinux_policy *backup_sepolicy;\n#endif' "$RULES" || true
+            sed -i '/rcu_assign_pointer(selinux_state.policy, pol);/a#ifdef CONFIG_KSU_SUSFS\n    backup_sepolicy = pol;\n#endif' "$RULES" || true
+            echo "✅ backup_sepolicy configured"
+          fi
 
       # ── FIX: Missing static key symbols for MANUAL_HOOK mode ────────────────
       - name: 🔧 Fix missing KSU static key symbols (SUSFS=false only)
