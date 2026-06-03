@@ -71,7 +71,7 @@ on:
         description: 'Enable Fengchi / HMBIRD Optimization'
         required: true
         type: boolean
-        default: true
+        default: false
       unicode_fix:
         description: 'Enable Unicode Bypass Fix (path traversal protection)'
         required: true
@@ -121,7 +121,7 @@ on:
         description: 'Create GitHub Release'
         required: true
         type: boolean
-        default: false
+        default: true
       ntsync_enable:
         description: 'Enable NTSync (low-latency NT sync primitives, great for gaming/Wine)'
         required: true
