@@ -29,11 +29,6 @@ on:
         required: true
         type: boolean
         default: true
-      lz4kd_enable:
-        description: 'Install LZ4KD Patch (ZRAM optimization)'
-        required: true
-        type: boolean
-        default: false
       bbr_enable:
         description: "Enable TCP BBR/Brutal (false=off, true=add, default=set as default)"
         required: true
@@ -104,11 +99,6 @@ on:
         default: true
       netfilter_full:
         description: 'Full Netfilter (conntrack, NAT, hashlimit)'
-        required: true
-        type: boolean
-        default: false
-      lrng_enable:
-        description: 'Enable LRNG v59 (better entropy for crypto/gaming)'
         required: true
         type: boolean
         default: false
