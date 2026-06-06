@@ -69,7 +69,6 @@
 - ✅ **Re-Kernel Support** – Enhanced app freezing via NoActive/Freezer *(optional)*
 
 ### 🧩 KernelSU Enhancements
-- ✅ **KPM Support** – Kernel Patch Module for ReSukiSU / SukiSU Ultra *(optional)*
 - ✅ **Multi-Manager** – Compatible with multiple KSU variants
 
 ---
@@ -138,8 +137,7 @@
    - ✅ Fengchi (performance scheduler)
    - ✅ Memory Opt Patches (25 optimizations)
    - 🔘 LTO Type: `thin` (balanced) / `none` (fastest compile) / `full` (max optimization)
-   - 🔘 Optional features: ~KPM~, NTSync, IPv6 NAT, etc.
-   - (⚠️ Warning: After flashing the KPM patch, the device may get stuck on the boot animation. Please do not power it on; wait for a future fix.)
+   - 🔘 Optional features: NTSync, IPv6 NAT, etc.
 5. Click **"Run workflow"** → Wait ~4-5 minutes
 6. Download `AnyKernel3_*.zip` from artifacts or Telegram
 
@@ -201,3 +199,5 @@ This CI pipeline includes:
 | [TheWildJames](https://github.com/TheWildJames) | Unicode fix & additional kernel patches |
 | [ReSukiSU](https://github.com/ReSukiSU/ReSukiSU/) | ReSukiSU & ReSukiSU patches |
 | [palazik](https://github.com/palazik/actions_oplus_sm8750) | Forked from this project |
+| [linx3141](https://github.com/linx3141/CustomRom-KernelBuilder) | Drawing on the Clang toolchain used in this project and the modifications made to it |
+
