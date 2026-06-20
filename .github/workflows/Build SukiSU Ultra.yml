@@ -462,6 +462,11 @@ jobs:
           fi
 
           echo "✅ Base patches applied"
+          
+      - name: 🔍 Debug Patch Rejection
+        if: failure()
+        run: |
+          cat kernel_workspace/common/fs/proc/task_mmu.c.rej
 
       - name: ⚙️ Configure Kernel Options
         run: |
