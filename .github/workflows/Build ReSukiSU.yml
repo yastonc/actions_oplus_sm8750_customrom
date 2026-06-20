@@ -442,7 +442,7 @@ jobs:
 
           if [ "${{ github.event.inputs.SUSFS }}" == "true" ]; then
             echo "📦 Applying SUSFS patch..."
-            patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch
+            patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
           fi
 
           echo "✅ Base patches applied"
