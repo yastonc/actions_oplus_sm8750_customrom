@@ -1010,9 +1010,6 @@ jobs:
                   feat(e("TG_MEM_OPT"),     "Memory & Scheduler Optimizations"),
               ]},
               {"tag": "hr"},
-              {"tag": "h4", "children": ["🎯 ROM Compatibility"]},
-              {"tag": "p", "children": ["⚠️ Built with AOSP Clang for AOSP-based ROMs ONLY. To flash on ColorOS / OxygenOS, build the matching normal (non-AOSP) workflow yourself — ZyCromerZ Clang builds are for ColorOS / OxygenOS only."]},
-              {"tag": "hr"},
               {"tag": "h4", "children": ["📥 Installation"]},
               {"tag": "ol", "children": [
                   {"tag": "li", "children": ["Flash AnyKernel3 zip via TWRP or KernelFlasher"]},
