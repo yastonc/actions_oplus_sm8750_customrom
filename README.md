@@ -3,7 +3,7 @@
     <summary>
       <h1 align="center" style="margin: 0; padding: 0;">⋆ palaziks CustomRom-KernelBuild ⋆</h1>
       <p align="center" style="font-size:12px; margin-top: 5px; margin-bottom: 20px;">
-        <i>Stability-focused GKI 6.6 kernel for OnePlus 13 (SM8750) with ReSukiSU</i>
+        <i>Stability-focused GKI 6.6 kernel for OnePlus 13 (SM8750) with ReSukiSU/SukiSU Ultra</i>
       </p>
     </summary>
   </ul>
@@ -50,6 +50,7 @@
 
 ### 🌐 Networking
 - ✅ **TCP BBR + Brutal** – Modern congestion control algorithms
+- ✅ **BBRv3** – Google's latest TCP congestion control, backported to 6.6
 - ✅ **WireGuard** – Kernel-level VPN support
 - ✅ **IP_SET + IPv6 NAT** – Advanced firewall + IPv6 masquerade *(optional)*
 - ✅ **TTL/HL Target** – Hide tethering from carrier detection *(optional)*
@@ -130,14 +131,14 @@
 ### Quick Start
 1. **Fork** this repository (ensure all branches are copied)
 2. Go to **Actions** → Enable workflows
-3. Click **"ReSukiSU OP13 Build"** → **"Run workflow"**
+3. Click **"ReSukiSU/SukiSU Ultra OP13 AOSP Build"** → **"Run workflow"**
 4. Configure options:
    - ✅ SuSFS (recommended for hiding)
    - ✅ Fengchi (performance scheduler)
    - ✅ Memory Opt Patches (25 optimizations)
    - 🔘 LTO Type: `thin` (balanced) / `none` (fastest compile) / `full` (max optimization)
    - 🔘 Optional features: NTSync, IPv6 NAT, etc.
-5. Click **"Run workflow"** → Wait ~4-5 minutes
+5. Click **"Run workflow"** → Wait ~5-6 minutes
 6. Download `AnyKernel3_*.zip` from artifacts or Telegram
 
 ### Workflow Optimizations
@@ -194,9 +195,11 @@ This CI pipeline includes:
 | [xiaomichael](https://github.com/xiaomichael) | Some help & GKI infrastructure |
 | [cctv18](https://github.com/cctv18) | SuSFS, ccache-ECS, Baseband Guard, public ccache |
 | [Numbersf](https://github.com/Numbersf) | Fengchi / HMBIRD scheduler patches |
-| [WildKernels](https://github.com/WildKernels) | 25 memory/scheduler optimization patches & workflow optimization |
-| [TheWildJames](https://github.com/TheWildJames) | Unicode fix & additional kernel patches |
+| [WildKernels](https://github.com/WildKernels) | 25 memory/scheduler optimization patches, BBRv3 backport patch & workflow optimization |
+| [TheWildJames](https://github.com/TheWildJames) | Unicode fix, BBRv3 patch mirror & additional kernel patches |
 | [ReSukiSU](https://github.com/ReSukiSU/ReSukiSU/) | ReSukiSU & ReSukiSU patches |
 | [palazik](https://github.com/palazik/actions_oplus_sm8750) | Forked from this project |
 | [linx3141](https://github.com/linx3141/CustomRom-KernelBuilder) | Drawing on the Clang toolchain used in this project and the modifications made to it |
+| [FatalCoder524](https://github.com/fatalcoder524) | BBRv3 integration method (`CONFIG_TCP_CONG_BBR3` + patch flow) |
+
 
