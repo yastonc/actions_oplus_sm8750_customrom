@@ -19,21 +19,11 @@ on:
         required: true
         type: boolean
         default: true
-      KPM:
-        description: 'Enable KPM'
-        required: true
-        type: boolean
-        default: false
       lz4_enable:
         description: 'Install LZ4 1.10.0 + ZSTD 1.5.7 Patch'
         required: true
         type: boolean
         default: true
-      lz4kd_enable:
-        description: 'Install LZ4KD Patch (ZRAM optimization)'
-        required: true
-        type: boolean
-        default: false
       bbr_enable:
         description: "Enable TCP BBR/Brutal (false=off, true=add, default=set as default)"
         required: true
@@ -102,16 +92,6 @@ on:
         required: true
         type: boolean
         default: true
-      netfilter_full:
-        description: 'Full Netfilter (conntrack, NAT, hashlimit)'
-        required: true
-        type: boolean
-        default: false
-      lrng_enable:
-        description: 'Enable LRNG v59 (better entropy for crypto/gaming)'
-        required: true
-        type: boolean
-        default: false
       wakelock_blocker:
         description: 'Enable Wakelock Blocker (better idle battery drain)'
         required: true
@@ -343,7 +323,7 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash -s main
           cd KernelSU
           KSU_VERSION_COUNT=$(git rev-list --count HEAD)
-          export KSUVER=$(expr $KSU_VERSION_COUNT + 37185)
+          export KSUVER=$(expr $KSU_VERSION_COUNT + 30700)
           echo "KSUVER=$KSUVER" >> $GITHUB_ENV
           echo "✅ ReSukiSU $(git rev-parse --short HEAD) (ver $KSUVER)"
 
@@ -354,7 +334,7 @@ jobs:
             git clone --depth=1 -b gki-android15-6.6 https://gitlab.com/simonpunk/susfs4ksu.git &
           fi
           git clone --depth=1 https://github.com/mrcxlinux/kernel_patches.git &
-          git clone --depth=1 https://github.com/ShirkNeko/SukiSU_patch.git &
+          git clone --depth=1 https://github.com/ReSukiSU/ReSukiSU_Patches.git &
           git clone --depth=1 https://github.com/TheWildJames/kernel_patches.git wildkernels_patches &
           wait
 
@@ -409,19 +389,6 @@ jobs:
           echo "CONFIG_TMPFS_XATTR=y" >> "$DEFCONFIG"
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> "$DEFCONFIG"
       
-          if [[ "${{ github.event.inputs.lz4kd_enable }}" == "true" ]]; then
-            echo "CONFIG_ZSMALLOC=y" >> "$DEFCONFIG"
-            echo "CONFIG_CRYPTO_LZ4HC=y" >> "$DEFCONFIG"
-            echo "CONFIG_CRYPTO_LZ4K=y" >> "$DEFCONFIG"
-            echo "CONFIG_CRYPTO_LZ4KD=y" >> "$DEFCONFIG"
-            echo "CONFIG_CRYPTO_842=y" >> "$DEFCONFIG"
-          fi
-      
-          if [ "${{ github.event.inputs.KPM }}" == "true" ]; then
-            echo "📦 Enabling KPM..."
-            echo "CONFIG_KPM=y" >> "$DEFCONFIG"
-          fi
-      
           echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" >> "$DEFCONFIG"
           sed -i 's/check_defconfig//' ./common/build.config.gki
           echo "CONFIG_HEADERS_INSTALL=n" >> "$DEFCONFIG"
@@ -459,17 +426,6 @@ jobs:
           cp ../kernel_patches/zram/002-zstd.patch ./
           git apply -p1 < 001-lz4.patch || echo "LZ4 Patch failed or already applied"
           patch -p1 < 002-zstd.patch || echo "ZSTD Patch failed or already applied"
-
-      - name: Apply LZ4KD Patch
-        if: inputs.lz4kd_enable
-        run: |
-          echo "Adding LZ4KD patch..."
-          cd kernel_workspace/common
-          cp -r ../SukiSU_patch/other/zram/lz4k/include/linux/* ./include/linux/
-          cp -r ../SukiSU_patch/other/zram/lz4k/lib/* ./lib
-          cp -r ../SukiSU_patch/other/zram/lz4k/crypto/* ./crypto
-          cp ../SukiSU_patch/other/zram/zram_patch/${{ env.KERNEL_VERSION }}/lz4kd.patch ./
-          patch -p1 -F 3 < lz4kd.patch || true
 
       - name: Configure ZRAM Writeback
         if: inputs.zram_writeback
@@ -744,46 +700,6 @@ jobs:
         run: |
           echo "CONFIG_WIREGUARD=y" >> common/arch/arm64/configs/gki_defconfig
 
-      - name: Enable Full Netfilter
-        if: inputs.netfilter_full
-        working-directory: kernel_workspace
-        run: |
-          cat >> common/arch/arm64/configs/gki_defconfig << 'EOF'
-          CONFIG_NF_CONNTRACK=y
-          CONFIG_NF_CONNTRACK_MARK=y
-          CONFIG_NF_CONNTRACK_ZONES=y
-          CONFIG_NF_CONNTRACK_TIMESTAMP=y
-          CONFIG_NF_CONNTRACK_EVENTS=y
-          CONFIG_NF_CONNTRACK_TIMEOUT=y
-          CONFIG_NF_CONNTRACK_LABELS=y
-          CONFIG_NF_NAT=y
-          CONFIG_NF_NAT_MASQUERADE=y
-          CONFIG_NETFILTER_XT_MATCH_HASHLIMIT=y
-          CONFIG_NETFILTER_XT_MATCH_CONNTRACK=y
-          CONFIG_NETFILTER_XT_MATCH_CONNLIMIT=y
-          CONFIG_NETFILTER_XT_MATCH_STATE=y
-          CONFIG_NETFILTER_XT_TARGET_MASQUERADE=y
-          CONFIG_NETFILTER_XT_TARGET_REDIRECT=y
-          EOF
-
-      - name: Enable LRNG v59
-        if: inputs.lrng_enable
-        working-directory: kernel_workspace/common
-        run: |
-          echo "Enabling LRNG v59..."
-          git clone --depth=1 https://github.com/smuellerDD/lrng.git /tmp/lrng_src
-          cp -r /tmp/lrng_src/drivers/char/lrng/* drivers/char/lrng/
-          cat >> arch/arm64/configs/gki_defconfig << 'EOF'
-          CONFIG_LRNG=y
-          CONFIG_LRNG_SHA256=y
-          CONFIG_LRNG_COLLECTION_SIZE=1024
-          CONFIG_LRNG_HEALTH_TESTS=y
-          CONFIG_LRNG_RCT_CUTOFF=31
-          CONFIG_LRNG_APT_CUTOFF=325
-          CONFIG_LRNG_IRQ=y
-          CONFIG_LRNG_CONTINUOUS_COMPRESSION_ENABLED=y
-          EOF
-
       - name: Enable Wakelock Blocker
         if: inputs.wakelock_blocker
         working-directory: kernel_workspace/common
@@ -950,16 +866,6 @@ jobs:
         with:
           path: ${{ env.LDCACHE_DIR }}
           key: lto-cache-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
-          
-      - name: 🧩 Patch Kernel Image (KPM)
-        if: inputs.KPM
-        run: |
-          cd /dev/shm/kout/arch/arm64/boot
-          curl -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.13.0/patch_linux
-          chmod +x patch_linux
-          ./patch_linux
-          rm -f Image
-          mv oImage Image
 
       - name: 🧠 Package AK3 ZIP
         id: create_zip
@@ -993,9 +899,7 @@ jobs:
           echo "KSU Branch: ${KSU_TYPENAME}" >> ./ak3.log
           echo "KSU Ver: ${KSUVER}" >> ./ak3.log
           echo "SuSFS: ${{ github.event.inputs.SUSFS }}" >> ./ak3.log
-          echo "KPM: ${{ github.event.inputs.KPM }}" >> ./ak3.log
           echo "LZ4: ${{ github.event.inputs.lz4_enable }}" >> ./ak3.log
-          echo "LZ4KD: ${{ github.event.inputs.lz4kd_enable }}" >> ./ak3.log
           echo "BBR&Brutal: ${{ github.event.inputs.bbr_enable }}" >> ./ak3.log
           echo "BBRv3: true (stock)" >> ./ak3.log
           echo "ADIOS: ${{ github.event.inputs.adios_enable }}" >> ./ak3.log
@@ -1013,25 +917,6 @@ jobs:
         with:
           name: ${{ steps.create_zip.outputs.ak3name }}
           path: ${{ github.workspace }}/kernel_workspace/AnyKernel*.zip
-
-      - name: 📝 Make ZRAM module
-        run: |
-          ZRAM_KO=$(find /dev/shm/kout -name "zram.ko" | head -1)
-          if [ -z "$ZRAM_KO" ]; then
-            echo "⚠️ zram.ko not found, skipping"
-            exit 0
-          fi
-          curl -L "https://github.com/cctv18/oppo_oplus_realme_sm8750/raw/refs/heads/main/zram.zip" -o zram.zip
-          unzip -q zram.zip -d zram
-          find zram -name "zram.ko" -exec cp "$ZRAM_KO" {} \;
-          rm -f zram.zip
-          echo "✅ Done!"
-
-      - name: 📤 Upload zram.zip
-        uses: actions/upload-artifact@v4
-        with:
-          name: zram-module
-          path: ./zram/*
 
       - name: Send Telegram Notification (Success)
         if: success()
@@ -1057,13 +942,11 @@ jobs:
           export TG_RUN_URL="$RUN_URL"
           export TG_REPO="${{ github.repository }}"
           export TG_SUSFS="${{ github.event.inputs.SUSFS }}"
-          export TG_KPM="${{ github.event.inputs.KPM }}"
           export TG_BBR="${{ github.event.inputs.bbr_enable }}"
           export TG_BBR3="true"
           export TG_ADIOS="${{ github.event.inputs.adios_enable }}"
           export TG_BBG="${{ github.event.inputs.baseband_guard }}"
           export TG_LZ4="${{ github.event.inputs.lz4_enable }}"
-          export TG_LZ4KD="${{ github.event.inputs.lz4kd_enable }}"
           export TG_MM="true"
           export TG_FENGCHI="${{ github.event.inputs.fengchi }}"
           export TG_HMBIRD="false"
@@ -1074,7 +957,6 @@ jobs:
           export TG_CPU_OPT="${{ github.event.inputs.cpu_opt }}"
           export TG_F2FS="${{ github.event.inputs.f2fs_opt }}"
           export TG_WG="${{ github.event.inputs.wireguard }}"
-          export TG_LRNG="${{ github.event.inputs.lrng_enable }}"
           export TG_WLB="${{ github.event.inputs.wakelock_blocker }}"
           export TG_NTSYNC="${{ github.event.inputs.ntsync_enable }}"
           export TG_DROIDSPACES="${{ github.event.inputs.droidspaces_enable }}"
@@ -1109,13 +991,11 @@ jobs:
               {"tag": "h4", "children": ["⚡ Features"]},
               {"tag": "ul", "children": [
                   feat(e("TG_SUSFS"),   "SuSFS"),
-                  feat("true" if e("TG_KPM") != "false" else "false", f"KPM ({e('TG_KPM')})"),
                   feat("true" if e("TG_BBR") != "false" else "false", f"BBR/Brutal ({e('TG_BBR')})"),
                   feat(e("TG_BBR3"), "BBRv3 TCP Congestion Control"),
                   feat(e("TG_ADIOS"),   "ADIOS IO Scheduler"),
                   feat(e("TG_BBG"),     "Baseband Guard"),
                   feat(e("TG_LZ4"),     "LZ4 1.10.0 + ZSTD 1.5.7"),
-                  feat(e("TG_LZ4KD"),  "LZ4KD ZRAM"),
                   feat(e("TG_MM"),      "Multi-Manager Support"),
                   feat(e("TG_FENGCHI"),"Fengchi Optimization"),
                   feat(e("TG_UFIX"),    "Unicode Bypass Fix"),
@@ -1124,7 +1004,6 @@ jobs:
                   feat(e("TG_CPU_OPT"),"Oryon CPU Optimizations"),
                   feat(e("TG_F2FS"),   "F2FS Optimizations"),
                   feat(e("TG_WG"),     "WireGuard VPN kernel level support"),
-                  feat(e("TG_LRNG"),   "LRNG v59"),
                   feat(e("TG_WLB"),    "Wakelock Blocker"),
                   feat(e("TG_NTSYNC"),      "NTSync (NT sync primitives)"),
                   feat(e("TG_DROIDSPACES"), "Droidspaces (proot-distro support)"),
@@ -1249,7 +1128,7 @@ jobs:
           TIME_FORM="$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')"
           echo "TIME=$TIME" >> $GITHUB_ENV
           echo "TIME_FORM=$TIME_FORM" >> $GITHUB_ENV
-          TAG_HEAD="OPPO-OPlus-Realme-build"
+          TAG_HEAD="OPlus-ReSukiSU-SM8750-CustomRom-KernelBuild"
           echo "TAG_HEAD=$TAG_HEAD" >> $GITHUB_ENV
           KSU_TYPENAME="ReSukiSU"
           echo "KSU_TYPENAME=$KSU_TYPENAME" >> $GITHUB_ENV
@@ -1261,9 +1140,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cat << 'EOF' > release_notes.md
-          ### 📱 OnePlus 13 ReSukiSU SM8750 AOSP Clang
-          > ⚠️ **ROM Compatibility:** Built with **AOSP Clang** for **AOSP-based ROMs** only. To flash on **ColorOS / OxygenOS**, run the matching normal (non-AOSP) build workflow yourself (ZyCromerZ Clang builds are for ColorOS / OxygenOS only).
-
+          ### 📱 OPlus ReSukiSU SM8750 CustomRom-KernelBuild (Compiling AOSP-Clang)
           - **Kernel Version:** ${{ env.FULL_VERSION }}
           - **Build Time:** ${{ env.TIME_FORM }}
           - **KSU Branch:** ReSukiSU
@@ -1274,9 +1151,7 @@ jobs:
           - **TTL Target:** ${{ github.event.inputs.ttl_enable }}
           - **Memory & Scheduler Optimizations:** ${{ github.event.inputs.mem_opt_patches }}
           - **Multi-Manager:** true
-          - **KPM:** ${{ github.event.inputs.KPM }}
           - **LZ4:** ${{ github.event.inputs.lz4_enable }}
-          - **LZ4KD:** ${{ github.event.inputs.lz4kd_enable }}
           - **ZRAM Writeback:** ${{ github.event.inputs.zram_writeback }}
           - **SchedUil Optimizations:** ${{ github.event.inputs.schedutil_opt }}
           - **BBR/Brutal:** ${{ github.event.inputs.bbr_enable }}
@@ -1287,8 +1162,11 @@ jobs:
           - **Oryon CPU Optimizations:** ${{ github.event.inputs.cpu_opt }}
           - **Unicode Fix:** ${{ github.event.inputs.unicode_fix }}
           - **WireGuard:** ${{ github.event.inputs.wireguard }}
-          - **LRNG v59:** ${{ github.event.inputs.lrng_enable }}
           - **Wakelock Blocker:** ${{ github.event.inputs.wakelock_blocker }}
+          - **Tested devices and systems:**
+              OnePlus Pad 3/OnePlus Pad 2 Pro [crDroidAndroid-16.0-20260622-erhai-v12.11]
+              OnePlus 13 [crDroidAndroid-16.0-20260622-dodge-v12.11]
+          - **For other SM8750 models, please test these custom ROMs yourself and back up the boot partition and other partitions just in case.**
           EOF
 
           gh release create "${{ env.TAG_HEAD }}-${{ env.TIME }}" \
