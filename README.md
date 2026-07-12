@@ -197,6 +197,7 @@ This CI pipeline includes:
 | [cctv18](https://github.com/cctv18) | SuSFS, ccache-ECS, Baseband Guard, public ccache |
 | [Numbersf](https://github.com/Numbersf) | Fengchi / HMBIRD scheduler patches |
 | [WildKernels](https://github.com/WildKernels) | 25 memory/scheduler optimization patches, BBRv3 backport patch & workflow optimization |
+| [ShirkNeko](https://github.com/ShirkNeko) | LZ4KD & ZRAM patches |
 | [TheWildJames](https://github.com/TheWildJames) | Unicode fix, BBRv3 patch mirror & additional kernel patches |
 | [ReSukiSU](https://github.com/ReSukiSU/ReSukiSU/) | ReSukiSU & ReSukiSU patches |
 | [palazik](https://github.com/palazik/actions_oplus_sm8750) | Forked from this project |
