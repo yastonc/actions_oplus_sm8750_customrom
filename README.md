@@ -204,5 +204,3 @@ This CI pipeline includes:
 | [FatalCoder524](https://github.com/fatalcoder524) | BBRv3 integration method (`CONFIG_TCP_CONG_BBR3` + patch flow) |
 | [brokestar233](https://github.com/brokestar233) | BORE scheduler integration for OnePlus SM8750 (source patch) |
 | [firelzrd](https://github.com/firelzrd) | BORE (Burst-Oriented Response Enhancer) CPU scheduler |
-
-
